@@ -7,7 +7,7 @@ import java.io.IOException;
 import com.certis.oil.filecrawler.vo.FileInfo;
 
 /**
- * File writer class for CSV format.
+ * File writer class for CSV format from FileInfo object.
  * 
  * @author timppa
  *

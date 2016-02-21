@@ -8,6 +8,12 @@ import java.io.IOException;
 
 import com.certis.oil.filecrawler.vo.FileInfo;
 
+/**
+ * CSV file reader. Reads row into FileInfo object.
+ * 
+ * @author timppa
+ *
+ */
 public class FileCSVReader {
 	
 	private String fileName = null;

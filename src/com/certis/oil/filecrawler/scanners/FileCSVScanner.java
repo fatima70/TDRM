@@ -37,6 +37,10 @@ public class FileCSVScanner implements Runnable {
 		runner.start();
 	}
 
+	/**
+	 * Main program logic for CSV file scanning.
+	 * 
+	 */
 	@Override
 	public void run() {
 		FileCSVReader fcr = new FileCSVReader();
