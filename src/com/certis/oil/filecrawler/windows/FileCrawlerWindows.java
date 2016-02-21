@@ -22,7 +22,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 
-public class FileCrawlerWindows extends Application {
+public class FileCrawlerWindows extends Application implements CallBack {
 
 	private String csvInputFileName = "";
 	private String networkDirectory = "";
@@ -276,6 +276,23 @@ public class FileCrawlerWindows extends Application {
 	 * Launch scanner thread.
 	 */
 	private void launchScanner() {
+		
+	}
+
+	@Override
+	public void progress(String message, int percentage) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void errorMessage(String errorMsg) {
+		showErrorDialog("Run error", errorMsg);		
+	}
+
+	@Override
+	public void summary(String[] summaryMsg) {
+		// TODO Auto-generated method stub
 		
 	}
 

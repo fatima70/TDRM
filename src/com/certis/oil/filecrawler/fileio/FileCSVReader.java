@@ -9,19 +9,39 @@ import java.io.IOException;
 import com.certis.oil.filecrawler.vo.FileInfo;
 
 public class FileCSVReader {
-
+	
+	private String fileName = null;
 	private BufferedReader reader = null;
 	
 	public void openFile(String fileName) throws FileNotFoundException {
+		this.fileName = fileName;
 		reader = new BufferedReader(new FileReader(new File(fileName)));
 	}
 	
-	public FileInfo readNext() {
-		FileInfo fi = new FileInfo();
-	
-		return fi;
+	public void skipRow() throws IOException {
+		reader.readLine();
 	}
 	
+	public FileInfo readNext() throws IOException {
+		FileInfo fi = null;
+		String row = reader.readLine();
+		if(row == null){
+			return fi;
+		}
+		fi = new FileInfo();
+		fi.fromCSVRow(row);
+		return fi;
+	}
+
+	public int countRowsAndReset() throws IOException {
+		int count = 0;
+		while(reader.readLine() != null) {			
+			count++;
+		}
+		reader.close();
+		openFile(fileName);
+		return count;
+	}
 	
 	public void closeFile() throws IOException {
 		if(reader != null) {

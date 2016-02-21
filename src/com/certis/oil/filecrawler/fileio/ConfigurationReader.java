@@ -20,41 +20,68 @@ public class ConfigurationReader {
 
 	private Logger log = Logger.getLogger(this.getClass());
 
-	public Map<String, Boolean> readExtensionRules(String fileName) {
-		return null;
-	}
-
-	public Map<String, String> readTags(String fileName) throws IOException {
-		Map<String, String> tagToCategoryMap = new HashMap<>();
-		List<List<String>> tagList = readXLSXFile(fileName);
+	/**
+	 * Read file extension to document type map from configuration Excel sheet.
+	 * 
+	 * @param fileName
+	 * @return
+	 * @throws IOException
+	 */
+	public Map<String, String> readExtensionRules(String fileName) throws IOException {
+		Map<String, String> extMap = new HashMap<>();
+		List<List<String>> tagList = readXLSXFile(fileName, "File extensions");
 		boolean first = true;
 		for(List<String> cellList : tagList) {
 			if(first) {//skip header row.
 				first = false;
 				continue;
 			}
-			String category = cellList.get(0).trim();
-			String[] clues = cellList.get(1).split(",");			
-			for(String clue : clues) {
-				clue = clue.toUpperCase().trim();
-				if("".equals(clue)) {
-					continue;
-				}
-				log.info(category+":"+clue);
-				tagToCategoryMap.put(category,clue);
-			}
+			String ext = cellList.get(0).trim();
+			String documentType= cellList.get(1).trim();			
+			extMap.put(ext, documentType);
+			log.info(ext+": "+documentType);
 		}		
-		return tagToCategoryMap;
+		return extMap;
+	}
+
+	/**
+	 * Read file name tags to document type map.
+	 * 
+	 * @param fileName
+	 * @return
+	 * @throws IOException
+	 */
+	public Map<String, String> readTags(String fileName) throws IOException {
+		Map<String, String> tagMap = new HashMap<>();
+		List<List<String>> tagList = readXLSXFile(fileName, "Tag list");
+		boolean first = true;
+		for(List<String> cellList : tagList) {
+			if(first) {//skip header row.
+				first = false;
+				continue;
+			}
+			String tag = cellList.get(0).trim();
+			String documentType= cellList.get(1).trim();			
+			tagMap.put(tag, documentType);
+			log.info(tag+": "+documentType);
+		}		
+		return tagMap;
 	}
 
 	public Map<String, Boolean> readTitles(String fileName) {
 		return null;
 	}
-
 	
+	/**
+	 * Read full well names from Excel sheet.
+	 * 
+	 * @param fileName
+	 * @return
+	 * @throws IOException
+	 */
 	public Map<String, String> readWellNames(String fileName) throws IOException {
 		Map<String, String> wellMap = new HashMap<>();
-		List<List<String>> wellList = readXLSXFile(fileName);
+		List<List<String>> wellList = readXLSXFile(fileName, "Well names");
 		int count = 1;
 		for(List<String> cellList : wellList) {
 			String wellName = cellList.get(0).trim();
@@ -66,11 +93,18 @@ public class ConfigurationReader {
 		return wellMap;
 	}
 	
-	public List<List<String>> readXLSXFile(String fileName) throws IOException {
+	/**
+	 * Read fully given Excel file sheet from a XSLS file.
+	 * @param fileName
+	 * @param sheetName
+	 * @return
+	 * @throws IOException
+	 */
+	public List<List<String>> readXLSXFile(String fileName, String sheetName) throws IOException {
 		File excelFile = new File(fileName);
 		FileInputStream fis = new FileInputStream(excelFile);
 		XSSFWorkbook myWorkBook = new XSSFWorkbook (fis);
-		XSSFSheet mySheet = myWorkBook.getSheetAt(0);
+		XSSFSheet mySheet = myWorkBook.getSheet(sheetName);
 		Iterator<Row> rowIterator = mySheet.iterator();
         // Traversing over each row of XLSX file
 		List<List<String>> rowList = new ArrayList<>();

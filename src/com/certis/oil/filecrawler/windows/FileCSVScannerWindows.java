@@ -2,6 +2,8 @@ package com.certis.oil.filecrawler.windows;
 
 import java.io.File;
 
+import com.certis.oil.filecrawler.scanners.FileCSVScanner;
+
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -27,7 +29,7 @@ import javafx.stage.Stage;
  * @author timppa
  *
  */
-public class FileCSVScannerWindows extends Application {
+public class FileCSVScannerWindows extends Application implements CallBack {
 
 	private String csvInputFileName = "";
 	private String extRulesFileName = "";
@@ -269,6 +271,32 @@ public class FileCSVScannerWindows extends Application {
 	 * Launch scanner thread.
 	 */
 	private void launchScanner() {
+		FileCSVScanner fcs = new FileCSVScanner(csvInputFileName, this);
+		fcs.start();
+	}
+
+	@Override
+	public void progress(String message, int percentage) {
+		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public void errorMessage(String errorMsg) {
+		showErrorDialog("Scanning error", errorMsg);		
+	}
+
+	@Override
+	public void summary(String[] summaryMsg) {
+		StringBuffer sb = new StringBuffer();
+		for(String msg : summaryMsg) {
+			sb.append(msg);
+			sb.append("\r\n");
+		}
+		Alert alert = new Alert(AlertType.INFORMATION);
+		alert.setTitle("Success");
+		alert.setHeaderText("Summary of results:");
+		alert.setContentText(sb.toString());
+		alert.showAndWait();		
 	}
 }
