@@ -9,7 +9,7 @@ import java.io.IOException;
 import com.certis.oil.filecrawler.vo.FileInfo;
 
 /**
- * CSV file reader. Reads row into FileInfo object.
+ * CSV file reader. Reads a row into FileInfo object.
  * 
  * @author timppa
  *
@@ -39,6 +39,12 @@ public class FileCSVReader {
 		return fi;
 	}
 
+	/**
+	 * Count the number of rows in the file and reopen the file from the start.
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
 	public int countRowsAndReset() throws IOException {
 		int count = 0;
 		while(reader.readLine() != null) {			
