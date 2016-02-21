@@ -1,0 +1,18 @@
+Eclipse and JavaFX
+
+Step 1) Right click on your Java Project and select Build Path->Configure Build Path...
+Step 2) Go to the Libraries tab and click Add External JARs...
+Step 3) Navigate to <your JDK>/jre/lib and select jfxrt.jar and click OK
+
+http://stackoverflow.com/questions/22812488/using-javafx-in-jre-8
+
+So the minimal fix for this is to allow access to the classes in this jar file (and only in this jar file). To do this, right-click on the project and bring up the project properties dialog. Select "Build Path" in the left pane, and select the "Libraries" tab. You will see a "JRE System Library" entry. Expand that entry, and you will see an "Access Rules" subentry:
+
+Select the "Access Rules" entry and click "Edit". Click "Add".
+Under "Resolution", choose "Accessible", and under "Rule Pattern", enter javafx/**:
+
+Junit: 
+http://stackoverflow.com/questions/14539072/java-lang-noclassdeffounderror-org-hamcrest-selfdescribing
+
+Added to libs https://code.google.com/archive/p/hamcrest/downloads
+
