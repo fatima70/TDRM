@@ -1,2 +1,0 @@
-# TDRM
-TDRM project
