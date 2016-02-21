@@ -21,6 +21,7 @@ public class FileCSVScanner implements Runnable {
 	private Thread runner = null;
 	private String fileName = null;
 	private CallBack callback;
+	private Set<String> wellNames = null;
 
 	public FileCSVScanner(String fileName, CallBack callback) {
 		this.fileName = fileName;
@@ -47,11 +48,11 @@ public class FileCSVScanner implements Runnable {
 		FileCSVWriter fcw = new FileCSVWriter();
 		String outputFileName = null;
 		try {
-			fcr.openFile(fileName);			
-			if(fileName.toLowerCase().endsWith(".csv")) {
-				outputFileName = fileName.substring(0, fileName.length()-4)+"_output.csv"; 
+			fcr.openFile(fileName);
+			if (fileName.toLowerCase().endsWith(".csv")) {
+				outputFileName = fileName.substring(0, fileName.length() - 4) + "_output.csv";
 			} else {
-				outputFileName = fileName+"_output.csv";
+				outputFileName = fileName + "_output.csv";
 			}
 			fcw.openFile(outputFileName);
 		} catch (IOException e) {
@@ -69,13 +70,14 @@ public class FileCSVScanner implements Runnable {
 			// Skipping first two rows.
 			int id = 0;
 			log.info("----------------------------------------------------------------");
-			log.info("Input file name: "+fileName);
-			log.info("Output file name: "+outputFileName);
+			log.info("Input file name: " + fileName);
+			log.info("Output file name: " + outputFileName);
 			while ((fi = fcr.readNext()) != null) {
 				fi.setId("" + id);
 				scanForDocumentType(id, fi);
 				scanForAPINumber(fi);
 				scanForDate(fi);
+				scanForWellName(fi);
 				log.info(fi.toString());
 				fcw.writeRow(fi);
 				id++;
@@ -92,7 +94,8 @@ public class FileCSVScanner implements Runnable {
 	}
 
 	/**
-	 * Scan for document type in file extension, file name or file path. 
+	 * Scan for document type in file extension, file name or file path.
+	 * 
 	 * @param id
 	 * @param fi
 	 */
@@ -119,7 +122,7 @@ public class FileCSVScanner implements Runnable {
 		Set<String> keySet = map.keySet();
 		for (String key : keySet) {
 			String test = key.toUpperCase();
-			if (filePath.contains("_"+test+"_") || filePath.contains("-"+test+"-")) {
+			if (filePath.contains("_" + test + "_") || filePath.contains("-" + test + "-")) {
 				docType = map.get(key);
 				fi.setDocumentType(docType);
 				log.info("Found document type from file path: " + filePath + "=" + docType);
@@ -127,12 +130,13 @@ public class FileCSVScanner implements Runnable {
 			}
 		}
 		log.info("No document type found from file name or path.");
-		fi.setDocumentType(FileInfo.UNKNOWN+"_doc_type");
+		fi.setDocumentType(FileInfo.UNKNOWN + "_doc_type");
 		return;
 	}
 
 	/**
 	 * Scan API number either from file name or path.
+	 * 
 	 * @param fi
 	 */
 	private void scanForAPINumber(FileInfo fi) {
@@ -149,16 +153,16 @@ public class FileCSVScanner implements Runnable {
 				fi.setApiNumber(apiNumber);
 			}
 		}
-		fi.setApiNumber(FileInfo.UNKNOWN+"_api_number");
+		fi.setApiNumber(FileInfo.UNKNOWN + "_api_number");
 		log.info("No api number from from file name or path.");
 	}
-	
+
 	/**
 	 * Scan for date from file name and path.
 	 * 
 	 * @param fi
 	 */
-	public void scanForDate(FileInfo fi) {
+	private void scanForDate(FileInfo fi) {
 		String data = fi.getFileName();
 		String date = getDate(data).trim();
 		if (date != null && !"".equals(date)) {
@@ -168,10 +172,10 @@ public class FileCSVScanner implements Runnable {
 		} else {
 			data = fi.getFilePath();
 			int cut = data.lastIndexOf("\\");
-			if(cut<0) {
+			if (cut < 0) {
 				cut = data.lastIndexOf("/");
 			}
-			if(cut>0) {
+			if (cut > 0) {
 				data = data.substring(cut);
 				date = getDate(data).trim();
 				if (date != null && !"".equals(date)) {
@@ -181,10 +185,10 @@ public class FileCSVScanner implements Runnable {
 				}
 			}
 		}
-		fi.setDate(FileInfo.UNKNOWN+"_date");
+		fi.setDate(FileInfo.UNKNOWN + "_date");
 		log.info("No date found from file name or path.");
 	}
-	
+
 	/**
 	 * Get api number which is in specific number format.
 	 * 
@@ -207,16 +211,38 @@ public class FileCSVScanner implements Runnable {
 		}
 		return null;
 	}
-	
-	public static String getDate(String data)
-	  {
 
-	  	Matcher m = Pattern.compile("(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\\d\\d").matcher(data);
-	  	String date = "";
-	  	while (m.find()) {
-	  		date = date+ m.group();
-	  	}
-	  	return date;
-	  }
+	private String getDate(String data) {
 
+		Matcher m = Pattern.compile("(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\\d\\d").matcher(data);
+		String date = "";
+		while (m.find()) {
+			date = date + m.group();
+		}
+		return date;
+	}
+
+	private void scanForWellName(FileInfo fi) {
+		if(wellNames == null) {
+			Map<String, String> wellMap = MainProcessor.getWellNameMap();
+			wellNames = wellMap.keySet();
+		}
+		for(String well : wellNames) {
+			if(fileName.contains(well.toUpperCase())) {
+				fi.setWellName(well);
+				log.info("Well name found from file name: "+well);
+				return;
+			}
+		}
+		String filePath = fi.getFilePath().toUpperCase();
+		for(String well : wellNames) {
+			if(filePath.contains(well.toUpperCase())) {
+				fi.setWellName(well);
+				log.info("Well name found from file path: "+well);
+				return;
+			}			
+		}
+		log.info("No well name found from file name or path.");
+		fi.setWellName(FileInfo.UNKNOWN+"_well_name");
+	}
 }
