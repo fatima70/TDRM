@@ -2,6 +2,7 @@ package com.certis.oil.filecrawler.vo;
 
 public class FileInfo {
 
+	public static final String UNKNOWN = "Unknown";
 	private String id = "";
 	private String filePath = "";
 	private String fileName = "";

@@ -1,7 +1,9 @@
 package com.certis.oil.filecrawler.windows;
 
 import java.io.File;
+import java.io.IOException;
 
+import com.certis.oil.filecrawler.MainProcessor;
 import com.certis.oil.filecrawler.scanners.FileCSVScanner;
 
 import javafx.application.Application;
@@ -100,19 +102,6 @@ public class FileCSVScannerWindows extends Application implements CallBack {
 		extRulesBox.getChildren().add(extRulesBtn);
 		grid.add(extRulesBox, 1, 4);
 		
-		extRulesBtn.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(final ActionEvent e) {
-				File file = fileChooser.showOpenDialog(primaryStage);
-				if (file != null) {
-					extRulesFileName = file.getAbsolutePath();
-					extRulesField.setText(getFileNameForField(extRulesFileName));						
-				} else {
-					//
-				}
-			}
-		});
-
 		//Tags file label, text field and browse button.
 		Label tagsLabel = new Label("Select tags list file:");
 		grid.add(tagsLabel, 0, 5);
@@ -128,19 +117,6 @@ public class FileCSVScannerWindows extends Application implements CallBack {
 		tagsBox.getChildren().add(tagsBtn);
 		grid.add(tagsBox, 1, 6);
 		
-		tagsBtn.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(final ActionEvent e) {
-				File file = fileChooser.showOpenDialog(primaryStage);
-				if (file != null) {
-					tagsFileName = file.getAbsolutePath();
-					tagsField.setText(getFileNameForField(tagsFileName));						
-				} else {
-					//
-				}
-			}
-		});
-
 		//Well names file label, text field and browse button.
 		Label wellsLabel = new Label("Select wells names file:");
 		grid.add(wellsLabel, 0, 7);
@@ -155,6 +131,36 @@ public class FileCSVScannerWindows extends Application implements CallBack {
 		wellsBox.setAlignment(Pos.BOTTOM_RIGHT);
 		wellsBox.getChildren().add(wellsBtn);
 		grid.add(wellsBox, 1, 8);
+		
+		extRulesBtn.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(final ActionEvent e) {
+				File file = fileChooser.showOpenDialog(primaryStage);
+				if (file != null) {
+					extRulesFileName = file.getAbsolutePath();
+					String shortName = getFileNameForField(extRulesFileName);
+					extRulesField.setText(shortName);	
+					tagsFileName = wellsFileName = extRulesFileName;
+					tagsField.setText(shortName);
+					wellsField.setText(shortName);
+				} else {
+					//
+				}
+			}
+		});
+		
+		tagsBtn.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(final ActionEvent e) {
+				File file = fileChooser.showOpenDialog(primaryStage);
+				if (file != null) {
+					tagsFileName = file.getAbsolutePath();
+					tagsField.setText(getFileNameForField(tagsFileName));						
+				} else {
+					//
+				}
+			}
+		});
 
 		wellsBtn.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
@@ -213,7 +219,11 @@ public class FileCSVScannerWindows extends Application implements CallBack {
 			@Override
 			public void handle(final ActionEvent e) {
 				if(checkParameters()) {
-					launchScanner();
+					try {
+						launchScanner();
+					} catch (IOException e1) {
+						showErrorDialog("Launching failed!", e1.getMessage());
+					}
 				}
 			}
 		});
@@ -270,7 +280,10 @@ public class FileCSVScannerWindows extends Application implements CallBack {
 	/**
 	 * Launch scanner thread.
 	 */
-	private void launchScanner() {
+	private void launchScanner() throws IOException {
+		MainProcessor.loadExtensionRules(extRulesFileName);
+		MainProcessor.loadTagList(tagsFileName);
+		MainProcessor.loadWellNames(wellsFileName);
 		FileCSVScanner fcs = new FileCSVScanner(csvInputFileName, this);
 		fcs.start();
 	}

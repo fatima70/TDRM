@@ -36,7 +36,7 @@ public class ConfigurationReader {
 				first = false;
 				continue;
 			}
-			String ext = cellList.get(0).trim();
+			String ext = cellList.get(0).trim().toUpperCase();
 			String documentType= cellList.get(1).trim();			
 			extMap.put(ext, documentType);
 			log.info(ext+": "+documentType);
@@ -60,7 +60,7 @@ public class ConfigurationReader {
 				first = false;
 				continue;
 			}
-			String tag = cellList.get(0).trim();
+			String tag = cellList.get(0).trim().toUpperCase();
 			String documentType= cellList.get(1).trim();			
 			tagMap.put(tag, documentType);
 			log.info(tag+": "+documentType);
@@ -68,7 +68,7 @@ public class ConfigurationReader {
 		return tagMap;
 	}
 
-	public Map<String, Boolean> readTitles(String fileName) {
+	public  Map<String, String> readTitles(String fileName) {
 		return null;
 	}
 	
@@ -84,10 +84,13 @@ public class ConfigurationReader {
 		List<List<String>> wellList = readXLSXFile(fileName, "Well names");
 		int count = 1;
 		for(List<String> cellList : wellList) {
-			String wellName = cellList.get(0).trim();
-			String wellNumber = cellList.get(1).trim();
-			log.info(count+"#: "+wellName+"="+wellNumber);
-			wellMap.put(wellName, wellNumber);
+			if(count == 1) {
+				count++;
+				continue;
+			}
+			String wellName = cellList.get(0).trim().toUpperCase();
+			log.info(count+"#: "+wellName);
+			wellMap.put(wellName, "1");
 			count++;
 		}
 		return wellMap;
