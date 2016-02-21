@@ -1,4 +1,4 @@
-package com.certis.oil.filecrawler;
+package com.certis.oil.filecrawler.scanners;
 
 import com.certis.oil.filecrawler.vo.FileInfo;
 

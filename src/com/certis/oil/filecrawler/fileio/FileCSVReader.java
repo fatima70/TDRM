@@ -1,4 +1,4 @@
-package com.certis.oil.filecrawler;
+package com.certis.oil.filecrawler.fileio;
 
 import java.io.BufferedReader;
 import java.io.File;
