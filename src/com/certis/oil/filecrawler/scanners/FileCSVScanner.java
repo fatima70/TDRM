@@ -143,10 +143,8 @@ public class FileCSVScanner implements Runnable {
 		map = MainProcessor.getTagMap();
 		Set<String> keySet = map.keySet();
 		for (String key : keySet) {
-			String test = key.toUpperCase();
-			if (fileName.contains(test)) {
-				docType = key;
-				fi.setDocumentType(docType);
+			if (fileName.contains(key)) {
+				fi.setDocumentType(key);
 				//log.info("Found document type from file name: " + fileName + "=" + docType);
 				return;
 			}
@@ -155,8 +153,7 @@ public class FileCSVScanner implements Runnable {
 		String filePath = fi.getFilePath().toUpperCase().replace("MICROSOFT.POWERSHELL.CORE", "");
 		keySet = map.keySet();
 		for (String key : keySet) {
-			String test = key.toUpperCase();
-			if (filePath.contains(test)) {
+			if (filePath.contains(key)) {
 				docType = map.get(key);
 				fi.setDocumentType(docType);
 				//log.info("Found document type from file path: " + filePath + "=" + docType);

@@ -39,13 +39,13 @@ public class ConfigurationReader {
 			String ext = cellList.get(0).trim().toUpperCase();
 			String documentType= cellList.get(1).trim();			
 			extMap.put(ext, documentType);
-			log.info(ext+": "+documentType);
 		}		
+		log.info("Number of extension rules: "+extMap.size());
 		return extMap;
 	}
 
 	/**
-	 * Read file name tags to document type map.
+	 * Read file name tags into map.
 	 * 
 	 * @param fileName
 	 * @return
@@ -61,10 +61,19 @@ public class ConfigurationReader {
 				continue;
 			}
 			String tag = cellList.get(0).trim().toUpperCase();
-			String documentType= cellList.get(1).trim();			
-			tagMap.put(tag, documentType);
-			log.info(tag+": "+documentType);
-		}		
+			if("".equals(tag)) {
+				continue;
+			}
+			if(tag.contains(",")) {
+				String tags[] = tag.split(",");
+				for(String t : tags) {
+					tagMap.put(t.trim(), "1");					
+				}
+			} else {
+				tagMap.put(tag, "1");
+			}
+		}	
+		log.info("Number of tags: "+tagMap.size());
 		return tagMap;
 	}
 
@@ -89,10 +98,10 @@ public class ConfigurationReader {
 				continue;
 			}
 			String wellName = cellList.get(0).trim().toUpperCase();
-			log.info(count+"#: "+wellName);
 			wellMap.put(wellName, "1");
 			count++;
 		}
+		log.info("Number of well names: "+wellMap.size());
 		return wellMap;
 	}
 	
