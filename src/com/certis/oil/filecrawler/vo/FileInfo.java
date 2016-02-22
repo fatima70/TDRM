@@ -117,6 +117,9 @@ public class FileInfo {
 				int extCut = fileName.lastIndexOf(".");
 				if(extCut>0) {
 					fileExtension = fileName.substring(extCut+1).toUpperCase();
+					if(fileExtension.length()>5) {
+						fileExtension = "";
+					}
 				}
 				break;
 			case 2:

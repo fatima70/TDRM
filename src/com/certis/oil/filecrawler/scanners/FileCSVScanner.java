@@ -1,6 +1,8 @@
 package com.certis.oil.filecrawler.scanners;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -19,12 +21,12 @@ public class FileCSVScanner implements Runnable {
 	private Logger log = Logger.getLogger(this.getClass());
 	private boolean running = false;
 	private Thread runner = null;
-	private String fileName = null;
+	private String csvFileName = null;
 	private CallBack callback;
 	private Set<String> wellNames = null;
 
 	public FileCSVScanner(String fileName, CallBack callback) {
-		this.fileName = fileName;
+		this.csvFileName = fileName;
 		this.callback = callback;
 	}
 
@@ -48,11 +50,11 @@ public class FileCSVScanner implements Runnable {
 		FileCSVWriter fcw = new FileCSVWriter();
 		String outputFileName = null;
 		try {
-			fcr.openFile(fileName);
-			if (fileName.toLowerCase().endsWith(".csv")) {
-				outputFileName = fileName.substring(0, fileName.length() - 4) + "_output.csv";
+			fcr.openFile(csvFileName);
+			if (csvFileName.toLowerCase().endsWith(".csv")) {
+				outputFileName = csvFileName.substring(0, csvFileName.length() - 4) + "_output.csv";
 			} else {
-				outputFileName = fileName + "_output.csv";
+				outputFileName = csvFileName + "_output.csv";
 			}
 			fcw.openFile(outputFileName);
 		} catch (IOException e) {
@@ -70,7 +72,7 @@ public class FileCSVScanner implements Runnable {
 			// Skipping first two rows.
 			int id = 0;
 			log.info("----------------------------------------------------------------");
-			log.info("Input file name: " + fileName);
+			log.info("Input file name: " + csvFileName);
 			log.info("Output file name: " + outputFileName);
 			while ((fi = fcr.readNext()) != null) {
 				fi.setId("" + id);
@@ -78,9 +80,12 @@ public class FileCSVScanner implements Runnable {
 				scanForAPINumber(fi);
 				scanForDate(fi);
 				scanForWellName(fi);
-				log.info(fi.toString());
+				//log.info(fi.toString());
 				fcw.writeRow(fi);
 				id++;
+				if(id%1000==0) {
+					log.info("Processed "+id+" rows.");
+				}
 			}
 			fcr.closeFile();
 			fcw.closeFile();
@@ -104,33 +109,37 @@ public class FileCSVScanner implements Runnable {
 		Map<String, String> map = MainProcessor.getExtMap();
 		String docType = map.get(extension);
 		if (docType != null) {
-			log.info("Found document type from extension: " + extension + "=" + docType);
+			//log.info("Found document type from extension: " + extension + "=" + docType);
 			fi.setDocumentType(docType);
 			return;
 		}
 
-		String fileName = fi.getFileName();
+		String fileName = fi.getFileName().toUpperCase();
 		map = MainProcessor.getTagMap();
-		docType = map.get(fileName);
-		if (docType != null) {
-			log.info("Found document type from file name: " + fileName + "=" + docType);
-			fi.setDocumentType(docType);
-			return;
-		}
-
-		String filePath = fi.getFilePath().toUpperCase();
 		Set<String> keySet = map.keySet();
 		for (String key : keySet) {
 			String test = key.toUpperCase();
-			if (filePath.contains("_" + test + "_") || filePath.contains("-" + test + "-")) {
-				docType = map.get(key);
+			if (fileName.contains(test)) {
+				docType = key;
 				fi.setDocumentType(docType);
-				log.info("Found document type from file path: " + filePath + "=" + docType);
+				//log.info("Found document type from file name: " + fileName + "=" + docType);
 				return;
 			}
 		}
-		log.info("No document type found from file name or path.");
-		fi.setDocumentType(FileInfo.UNKNOWN + "_doc_type");
+		
+		String filePath = fi.getFilePath().toUpperCase().replace("MICROSOFT.POWERSHELL.CORE", "");
+		keySet = map.keySet();
+		for (String key : keySet) {
+			String test = key.toUpperCase();
+			if (filePath.contains(test)) {
+				docType = map.get(key);
+				fi.setDocumentType(docType);
+				//log.info("Found document type from file path: " + filePath + "=" + docType);
+				return;
+			}
+		}
+		//log.info("No document type found from file extension, name or path.");
+		fi.setDocumentType("");
 		return;
 	}
 
@@ -143,18 +152,19 @@ public class FileCSVScanner implements Runnable {
 		String data = fi.getFileName();
 		String apiNumber = getAPINumber(data);
 		if (apiNumber != null) {
-			log.info("Found API number from file name:" + apiNumber);
+			//log.info("Found API number from file name:" + apiNumber);
 			fi.setApiNumber(apiNumber);
 		} else {
 			data = fi.getFilePath();
 			apiNumber = getAPINumber(data);
 			if (apiNumber != null) {
-				log.info("Found API number from file path:" + apiNumber);
+				//log.info("Found API number from file path:" + apiNumber);
 				fi.setApiNumber(apiNumber);
+			} else {
+				fi.setApiNumber("");
+				//log.info("No api number from from file name or path.");
 			}
 		}
-		fi.setApiNumber(FileInfo.UNKNOWN + "_api_number");
-		log.info("No api number from from file name or path.");
 	}
 
 	/**
@@ -166,7 +176,7 @@ public class FileCSVScanner implements Runnable {
 		String data = fi.getFileName();
 		String date = getDate(data).trim();
 		if (date != null && !"".equals(date)) {
-			log.info("Found date from file name:" + date);
+			//log.info("Found date from file name:" + date);
 			fi.setDate(date);
 			return;
 		} else {
@@ -179,14 +189,14 @@ public class FileCSVScanner implements Runnable {
 				data = data.substring(cut);
 				date = getDate(data).trim();
 				if (date != null && !"".equals(date)) {
-					log.info("Found date from parent directory:" + date);
+					//log.info("Found date from parent directory:" + date);
 					fi.setDate(date);
 					return;
 				}
 			}
 		}
-		fi.setDate(FileInfo.UNKNOWN + "_date");
-		log.info("No date found from file name or path.");
+		fi.setDate("");
+		//log.info("No date found from file name or path.");
 	}
 
 	/**
@@ -195,7 +205,7 @@ public class FileCSVScanner implements Runnable {
 	 * @param data
 	 * @return
 	 */
-	private String getAPINumber(String data) {
+	public String getAPINumber(String data) {
 		int count = 0;
 		Matcher m = Pattern.compile("([0-9-]+){10,20}").matcher(data);
 		String api = "";
@@ -227,22 +237,35 @@ public class FileCSVScanner implements Runnable {
 			Map<String, String> wellMap = MainProcessor.getWellNameMap();
 			wellNames = wellMap.keySet();
 		}
+		String fileName = fi.getFileName().toUpperCase();
+		String fileName2 = fileName.replace(" #", "#");
+		String fileName3 = fileName2.replace("ST.","STATE");
+		//log.debug(fileName+","+fileName2+", "+fileName3);
+		List<String> wellList = new ArrayList<>();
 		for(String well : wellNames) {
-			if(fileName.contains(well.toUpperCase())) {
+			well = well.toUpperCase();
+			wellList.add(well);
+			if(fileName.contains(well) || 
+			   fileName2.contains(well) ||
+			   fileName3.contains(well)){
 				fi.setWellName(well);
-				log.info("Well name found from file name: "+well);
+				//log.info("Well name found from file name: "+well);
 				return;
 			}
 		}
 		String filePath = fi.getFilePath().toUpperCase();
-		for(String well : wellNames) {
-			if(filePath.contains(well.toUpperCase())) {
+		String filePath2 = filePath.replace(" #", "#");
+		String filePath3 = filePath2.replace("ST.","STATE");
+		for(String well : wellList) {
+			if(filePath.contains(well) ||
+			   filePath2.contains(well) || 
+			   filePath3.contains(well) ) {
 				fi.setWellName(well);
-				log.info("Well name found from file path: "+well);
+				//log.info("Well name found from file path: "+well);
 				return;
 			}			
 		}
-		log.info("No well name found from file name or path.");
-		fi.setWellName(FileInfo.UNKNOWN+"_well_name");
+		//log.info("No well name found from file name or path.");
+		fi.setWellName("");
 	}
 }
