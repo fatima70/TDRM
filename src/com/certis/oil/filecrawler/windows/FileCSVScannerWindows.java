@@ -254,7 +254,7 @@ public class FileCSVScannerWindows extends Application implements CallBack, Even
 		grid.add(pb, 0, 16);
 		
 		stopBtn = new Button("Stop scanning");
-		HBox stopBox = new HBox(70);
+		HBox stopBox = new HBox(90);
 		stopBox.setAlignment(Pos.BASELINE_CENTER);
 		stopBox.getChildren().add(stopBtn);
 		grid.add(stopBox, 1, 16);
@@ -277,6 +277,7 @@ public class FileCSVScannerWindows extends Application implements CallBack, Even
 
 		Scene scene = new Scene(grid, 500, 550);
 		primaryStage.setScene(scene);
+		primaryStage.setResizable(false);
 		primaryStage.show();
 		//stopBox.setDisable(true);
 	}
