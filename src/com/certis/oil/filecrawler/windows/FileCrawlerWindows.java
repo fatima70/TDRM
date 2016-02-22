@@ -3,6 +3,7 @@ package com.certis.oil.filecrawler.windows;
 import java.io.File;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -14,6 +15,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.GridPane;
@@ -39,6 +41,7 @@ public class FileCrawlerWindows extends Application implements CallBack {
 	 */
 	@Override
 	public void start(Stage primaryStage) throws Exception {
+		Platform.setImplicitExit(false);
 		final FileChooser fileChooser = new FileChooser();
 		primaryStage.setTitle("Certis Inc - Oil Well Document Crawler");
 		GridPane grid = new GridPane();
@@ -228,6 +231,8 @@ public class FileCrawlerWindows extends Application implements CallBack {
 				}
 			}
 		});
+		ProgressBar pb = new ProgressBar(0.01);
+		grid.add(pb, 0, 12);
 		
 		Scene scene = new Scene(grid, 500, 500);
 		primaryStage.setScene(scene);
@@ -280,7 +285,7 @@ public class FileCrawlerWindows extends Application implements CallBack {
 	}
 
 	@Override
-	public void progress(String message, int percentage) {
+	public void progress(String message, double percentage) {
 		// TODO Auto-generated method stub
 		
 	}

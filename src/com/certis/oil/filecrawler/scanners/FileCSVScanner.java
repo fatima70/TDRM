@@ -1,6 +1,5 @@
 package com.certis.oil.filecrawler.scanners;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,9 +23,16 @@ public class FileCSVScanner implements Runnable {
 	private String csvFileName = null;
 	private CallBack callback;
 	private Set<String> wellNames = null;
+	private String extRulesFileName;
+	private String tagsFileName;
+	private String wellsFileName;
 
-	public FileCSVScanner(String fileName, CallBack callback) {
-		this.csvFileName = fileName;
+	public FileCSVScanner(String csvFileName, CallBack callback, String extRulesFileName,
+			String tagsFileName, String wellsFileName) {
+		this.csvFileName = csvFileName;
+		this.extRulesFileName = extRulesFileName;
+		this.tagsFileName = tagsFileName;
+		this.wellsFileName = wellsFileName;
 		this.callback = callback;
 	}
 
@@ -40,6 +46,13 @@ public class FileCSVScanner implements Runnable {
 		runner.start();
 	}
 
+	public void stop() {
+		running = false;
+	}
+	
+	public boolean isRunning() {
+		return running;
+	}
 	/**
 	 * Main program logic for CSV file scanning.
 	 * 
@@ -50,6 +63,12 @@ public class FileCSVScanner implements Runnable {
 		FileCSVWriter fcw = new FileCSVWriter();
 		String outputFileName = null;
 		try {
+			callback.progress("Loading extension rules.", -1d);
+			MainProcessor.loadExtensionRules(extRulesFileName);
+			callback.progress("Loading tag list.", -1d);
+			MainProcessor.loadTagList(tagsFileName);
+			callback.progress("Loading well names.", -1d);
+			MainProcessor.loadWellNames(wellsFileName);
 			fcr.openFile(csvFileName);
 			if (csvFileName.toLowerCase().endsWith(".csv")) {
 				outputFileName = csvFileName.substring(0, csvFileName.length() - 4) + "_output.csv";
@@ -57,12 +76,13 @@ public class FileCSVScanner implements Runnable {
 				outputFileName = csvFileName + "_output.csv";
 			}
 			fcw.openFile(outputFileName);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			running = false;
 			e.printStackTrace();
 			callback.errorMessage(e.getMessage());
 			return;
 		}
+		int id = 0;
 		try {
 			FileInfo fi = null;
 			fcr.skipRow();
@@ -70,11 +90,13 @@ public class FileCSVScanner implements Runnable {
 			// int rowCount = fcr.countRowsAndReset();
 			// log.info("Rows in the CSV file: "+rowCount);
 			// Skipping first two rows.
-			int id = 0;
+			
 			log.info("----------------------------------------------------------------");
 			log.info("Input file name: " + csvFileName);
 			log.info("Output file name: " + outputFileName);
-			while ((fi = fcr.readNext()) != null) {
+			String msg = null;
+			callback.progress("Started processing CSV file.", -1d);
+			while ((fi = fcr.readNext()) != null && running) {
 				fi.setId("" + id);
 				scanForDocumentType(id, fi);
 				scanForAPINumber(fi);
@@ -83,18 +105,25 @@ public class FileCSVScanner implements Runnable {
 				//log.info(fi.toString());
 				fcw.writeRow(fi);
 				id++;
-				if(id%1000==0) {
-					log.info("Processed "+id+" rows.");
+				if(id%250==0) {
+					msg = "Processed "+id+" rows.";
+					log.info(msg);
+					callback.progress(msg, -1d);
 				}
 			}
 			fcr.closeFile();
 			fcw.closeFile();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			running = false;
 			callback.errorMessage(e.getMessage());
 			e.printStackTrace();
+			return;
 		}
-
+		if(running) {
+			callback.progress("Completed OK, processed: "+id+" rows.", 100);				
+		} else {
+			callback.progress("Stopped, processed: "+id+" rows.", 100);
+		}
 		running = false;
 	}
 

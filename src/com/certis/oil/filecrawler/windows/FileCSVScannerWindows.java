@@ -2,11 +2,12 @@ package com.certis.oil.filecrawler.windows;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
-import com.certis.oil.filecrawler.MainProcessor;
 import com.certis.oil.filecrawler.scanners.FileCSVScanner;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -15,7 +16,10 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBase;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -24,6 +28,7 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 /**
  * File scanner window user interface, coded with JavaFX.
@@ -31,12 +36,23 @@ import javafx.stage.Stage;
  * @author timppa
  *
  */
-public class FileCSVScannerWindows extends Application implements CallBack {
+public class FileCSVScannerWindows extends Application implements CallBack, EventHandler<WindowEvent> {
 
 	private String csvInputFileName = "";
 	private String extRulesFileName = "";
 	private String tagsFileName = "";
 	private String wellsFileName = "";
+	private ProgressBar pb;
+	private Label statusLabel;
+	private FileCSVScanner fcs;
+	private Button scannerBtn;
+	private Button clearBtn;
+	private ButtonBase wellsBtn;
+	private ButtonBase extRulesBtn;
+	private ButtonBase tagsBtn;
+	private Button csvInputBtn;
+	private Button stopBtn;
+	private Stage primaryStage;
 	
 	public static void launchApp(String args[]) {
 		FileCSVScannerWindows.launch(args);
@@ -47,6 +63,8 @@ public class FileCSVScannerWindows extends Application implements CallBack {
 	 */
 	@Override
 	public void start(Stage primaryStage) throws Exception {
+		this.primaryStage = primaryStage;
+		primaryStage.setOnCloseRequest(this);
 		final FileChooser fileChooser = new FileChooser();
 		primaryStage.setTitle("Certis Inc - CSV File List Scanner");
 		GridPane grid = new GridPane();
@@ -68,7 +86,7 @@ public class FileCSVScannerWindows extends Application implements CallBack {
 		csvInputField.setEditable(false);
 		grid.add(csvInputField, 0, 2);
 
-		Button csvInputBtn = new Button("Browse");
+		csvInputBtn = new Button("Browse");
 		HBox csvInputBox = new HBox(50);
 		csvInputBox.setAlignment(Pos.BOTTOM_RIGHT);
 		csvInputBox.getChildren().add(csvInputBtn);
@@ -96,7 +114,7 @@ public class FileCSVScannerWindows extends Application implements CallBack {
 		extRulesField.setEditable(false);
 		grid.add(extRulesField, 0, 4);
 
-		Button extRulesBtn = new Button("Browse");
+		extRulesBtn = new Button("Browse");
 		HBox extRulesBox = new HBox(50);
 		extRulesBox.setAlignment(Pos.BOTTOM_RIGHT);
 		extRulesBox.getChildren().add(extRulesBtn);
@@ -111,7 +129,7 @@ public class FileCSVScannerWindows extends Application implements CallBack {
 		tagsField.setEditable(false);
 		grid.add(tagsField, 0, 6);
 
-		Button tagsBtn = new Button("Browse");
+		tagsBtn = new Button("Browse");
 		HBox tagsBox = new HBox(50);
 		tagsBox.setAlignment(Pos.BOTTOM_RIGHT);
 		tagsBox.getChildren().add(tagsBtn);
@@ -126,7 +144,7 @@ public class FileCSVScannerWindows extends Application implements CallBack {
 		wellsField.setEditable(false);
 		grid.add(wellsField, 0, 8);
 
-		Button wellsBtn = new Button("Browse");
+		wellsBtn = new Button("Browse");
 		HBox wellsBox = new HBox(50);
 		wellsBox.setAlignment(Pos.BOTTOM_RIGHT);
 		wellsBox.getChildren().add(wellsBtn);
@@ -189,7 +207,7 @@ public class FileCSVScannerWindows extends Application implements CallBack {
 		priorityTwoField.setMaxSize(150, 20);
 		grid.add(priorityTwoField, 0, 12);
 		
-		Button clearBtn = new Button("Clear all");
+		clearBtn = new Button("Clear all");
 		HBox clearBox = new HBox(50);
 		clearBox.setAlignment(Pos.BASELINE_RIGHT);
 		clearBox.getChildren().add(clearBtn);
@@ -210,7 +228,7 @@ public class FileCSVScannerWindows extends Application implements CallBack {
 			}
 		});
 		
-		Button scannerBtn = new Button("Run scanner");
+		scannerBtn = new Button("Run scanner");
 		HBox scannerBox = new HBox(50);
 		scannerBox.setAlignment(Pos.BASELINE_CENTER);
 		scannerBox.getChildren().add(scannerBtn);
@@ -228,10 +246,39 @@ public class FileCSVScannerWindows extends Application implements CallBack {
 			}
 		});
 		
-		Scene scene = new Scene(grid, 500, 500);
+		statusLabel = new Label("Status: Click run to start.");
+		grid.add(statusLabel, 0, 15);
+		
+		pb = new ProgressBar(0);
+		pb.setMinSize(200, 10);
+		grid.add(pb, 0, 16);
+		
+		stopBtn = new Button("Stop scanning");
+		HBox stopBox = new HBox(70);
+		stopBox.setAlignment(Pos.BASELINE_CENTER);
+		stopBox.getChildren().add(stopBtn);
+		grid.add(stopBox, 1, 16);
+		stopBtn.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(final ActionEvent e) {
+				if(fcs != null && fcs.isRunning()) {
+					fcs.stop();
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e1) {
+						e1.printStackTrace();
+					}
+					setDisableButtons(false);					
+				} else {
+					showErrorDialog("Nothing is running", "Scanning not started.");
+				}
+			}
+		});
+
+		Scene scene = new Scene(grid, 500, 550);
 		primaryStage.setScene(scene);
 		primaryStage.show();
-
+		//stopBox.setDisable(true);
 	}
 	
 	/**
@@ -265,7 +312,13 @@ public class FileCSVScannerWindows extends Application implements CallBack {
 		} else if(wellsFileName == "") {
 			showErrorDialog("Well names file", "Missing well names filename.");
 			return false;
-		}		
+		} else if(!csvInputFileName.toLowerCase().endsWith("csv")) {
+			showErrorDialog("CSV input file", "CSV input filename does not end with .csv");
+			return false;
+		} else if(!extRulesFileName.toLowerCase().endsWith("xlsx")) {
+			showErrorDialog("Extension rule file", "Extension rule file must be an Excel XLSX file.");
+			return false;
+		}
 		return true;
 	}
 	
@@ -281,22 +334,36 @@ public class FileCSVScannerWindows extends Application implements CallBack {
 	 * Launch scanner thread.
 	 */
 	private void launchScanner() throws IOException {
-		MainProcessor.loadExtensionRules(extRulesFileName);
-		MainProcessor.loadTagList(tagsFileName);
-		MainProcessor.loadWellNames(wellsFileName);
-		FileCSVScanner fcs = new FileCSVScanner(csvInputFileName, this);
+		statusLabel.setText("Status: Starting scanner.");
+		fcs = new FileCSVScanner(csvInputFileName, this, extRulesFileName, 
+				tagsFileName, wellsFileName);
 		fcs.start();
+		setDisableButtons(true);
+		pb.setProgress(-1d);//progress start spinning.
 	}
 
 	@Override
-	public void progress(String message, int percentage) {
-		// TODO Auto-generated method stub
-		
+	public void progress(String message, double percentage) {
+		Platform.runLater(new Runnable() {
+	        @Override
+	        public void run() {
+	    		statusLabel.setText("Status: "+message);
+	    		pb.setProgress(percentage);
+	        }
+	    });
 	}
 
 	@Override
 	public void errorMessage(String errorMsg) {
-		showErrorDialog("Scanning error", errorMsg);		
+		Platform.runLater(new Runnable() {
+	        @Override
+	        public void run() {
+	    		statusLabel.setText("Status: error");
+	    		pb.setProgress(0d);
+	    		showErrorDialog("Error: ", errorMsg);
+	        }
+	    });
+		setDisableButtons(false);
 	}
 
 	@Override
@@ -310,6 +377,47 @@ public class FileCSVScannerWindows extends Application implements CallBack {
 		alert.setTitle("Success");
 		alert.setHeaderText("Summary of results:");
 		alert.setContentText(sb.toString());
-		alert.showAndWait();		
+		alert.showAndWait();	
+		setDisableButtons(false);
+	}
+	
+	public void setDisableButtons(boolean disable) {
+		Platform.runLater(new Runnable() {
+	        @Override
+	        public void run() {
+	    		csvInputBtn.setDisable(disable);
+	    		extRulesBtn.setDisable(disable);
+	    		tagsBtn.setDisable(disable);
+	    		wellsBtn.setDisable(disable);
+	    		clearBtn.setDisable(disable);
+	    		scannerBtn.setDisable(disable);
+	    		stopBtn.setDisable(!disable);
+	        }
+	    });
+	}
+
+	@Override
+	public void handle(WindowEvent event) {
+		Alert alert = new Alert(AlertType.CONFIRMATION);
+        alert.setTitle("Close Confirmation");
+        alert.setHeaderText("Closing application");
+        alert.setContentText("Are you sure?");
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == ButtonType.OK){
+        	if(fcs != null && fcs.isRunning()) {
+        		fcs.stop();
+        		try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+        	}
+            primaryStage.close();
+        }
+        if(result.get()==ButtonType.CANCEL){
+            event.consume();
+            alert.close();
+        }
 	}
 }

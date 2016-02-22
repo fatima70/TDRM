@@ -4,7 +4,7 @@ public interface CallBack {
 
 	public void errorMessage(String errorMsg);
 	
-	public void progress(String message, int percentage);
+	public void progress(String message, double percentage);
 	
 	public void summary(String summaryMsg[]);
 }
