@@ -1,1 +1,1 @@
-java -jar TDRMScanner.jar scanner
+java -jar TDRM.jar scanner
