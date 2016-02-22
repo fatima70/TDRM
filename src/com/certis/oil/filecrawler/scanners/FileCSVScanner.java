@@ -26,14 +26,16 @@ public class FileCSVScanner implements Runnable {
 	private String extRulesFileName;
 	private String tagsFileName;
 	private String wellsFileName;
+	private String csvOutputFileName;
 
 	public FileCSVScanner(String csvFileName, CallBack callback, String extRulesFileName,
-			String tagsFileName, String wellsFileName) {
+			String tagsFileName, String wellsFileName, String csvOutputFileName) {
 		this.csvFileName = csvFileName;
 		this.extRulesFileName = extRulesFileName;
 		this.tagsFileName = tagsFileName;
 		this.wellsFileName = wellsFileName;
 		this.callback = callback;
+		this.csvOutputFileName = csvOutputFileName;
 	}
 
 	public void start() {
@@ -61,7 +63,6 @@ public class FileCSVScanner implements Runnable {
 	public void run() {
 		FileCSVReader fcr = new FileCSVReader();
 		FileCSVWriter fcw = new FileCSVWriter();
-		String outputFileName = null;
 		try {
 			callback.progress("Loading extension rules.", -1d);
 			MainProcessor.loadExtensionRules(extRulesFileName);
@@ -69,13 +70,8 @@ public class FileCSVScanner implements Runnable {
 			MainProcessor.loadTagList(tagsFileName);
 			callback.progress("Loading well names.", -1d);
 			MainProcessor.loadWellNames(wellsFileName);
-			fcr.openFile(csvFileName);
-			if (csvFileName.toLowerCase().endsWith(".csv")) {
-				outputFileName = csvFileName.substring(0, csvFileName.length() - 4) + "_output.csv";
-			} else {
-				outputFileName = csvFileName + "_output.csv";
-			}
-			fcw.openFile(outputFileName);
+			fcr.openFile(csvFileName);			
+			fcw.openFile(csvOutputFileName);
 		} catch (Exception e) {
 			running = false;
 			e.printStackTrace();
@@ -93,7 +89,7 @@ public class FileCSVScanner implements Runnable {
 			
 			log.info("----------------------------------------------------------------");
 			log.info("Input file name: " + csvFileName);
-			log.info("Output file name: " + outputFileName);
+			log.info("Output file name: " + csvOutputFileName);
 			String msg = null;
 			callback.progress("Started processing CSV file.", -1d);
 			while ((fi = fcr.readNext()) != null && running) {

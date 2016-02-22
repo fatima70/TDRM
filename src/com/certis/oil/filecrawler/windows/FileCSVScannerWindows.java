@@ -39,6 +39,7 @@ import javafx.stage.WindowEvent;
 public class FileCSVScannerWindows extends Application implements CallBack, EventHandler<WindowEvent> {
 
 	private String csvInputFileName = "";
+	private String csvOutputFileName = "";
 	private String extRulesFileName = "";
 	private String tagsFileName = "";
 	private String wellsFileName = "";
@@ -91,7 +92,60 @@ public class FileCSVScannerWindows extends Application implements CallBack, Even
 		csvInputBox.setAlignment(Pos.BOTTOM_RIGHT);
 		csvInputBox.getChildren().add(csvInputBtn);
 		grid.add(csvInputBox, 1, 2);
+		
+		Label csvOutputFileNameLabel = new Label("Output filename:");
+		grid.add(csvOutputFileNameLabel, 0, 3);
+		
+		TextField csvOutputFileField = new TextField();
+		csvOutputFileField.setMaxSize(320, 20);
+		csvOutputFileField.setEditable(false);
+		grid.add(csvOutputFileField, 0, 4);
+		
+		//Extension rule file label, text field and browse button.
+		Label extRulesLabel = new Label("Select extension rules file:");
+		grid.add(extRulesLabel, 0, 5);
 
+		TextField extRulesField = new TextField();
+		extRulesField.setMinSize(300, 20);
+		extRulesField.setEditable(false);
+		grid.add(extRulesField, 0, 6);
+
+		extRulesBtn = new Button("Browse");
+		HBox extRulesBox = new HBox(50);
+		extRulesBox.setAlignment(Pos.BOTTOM_RIGHT);
+		extRulesBox.getChildren().add(extRulesBtn);
+		grid.add(extRulesBox, 1, 6);
+		
+		//Tags file label, text field and browse button.
+		Label tagsLabel = new Label("Select tags list file:");
+		grid.add(tagsLabel, 0, 7);
+
+		TextField tagsField = new TextField();
+		tagsField.setMinSize(300, 20);
+		tagsField.setEditable(false);
+		grid.add(tagsField, 0, 8);
+
+		tagsBtn = new Button("Browse");
+		HBox tagsBox = new HBox(50);
+		tagsBox.setAlignment(Pos.BOTTOM_RIGHT);
+		tagsBox.getChildren().add(tagsBtn);
+		grid.add(tagsBox, 1, 8);
+		
+		//Well names file label, text field and browse button.
+		Label wellsLabel = new Label("Select wells names file:");
+		grid.add(wellsLabel, 0, 9);
+
+		TextField wellsField = new TextField();
+		wellsField.setMinSize(300, 20);
+		wellsField.setEditable(false);
+		grid.add(wellsField, 0, 10);
+
+		wellsBtn = new Button("Browse");
+		HBox wellsBox = new HBox(50);
+		wellsBox.setAlignment(Pos.BOTTOM_RIGHT);
+		wellsBox.getChildren().add(wellsBtn);
+		grid.add(wellsBox, 1, 10);
+		
 		csvInputBtn.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(final ActionEvent e) {
@@ -99,57 +153,19 @@ public class FileCSVScannerWindows extends Application implements CallBack, Even
 				if (file != null) {
 					csvInputFileName = file.getAbsolutePath();
 					csvInputField.setText(getFileNameForField(csvInputFileName));
+					if (csvInputFileName.toLowerCase().endsWith(".csv")) {
+						csvOutputFileName = csvInputFileName.substring(0,csvInputFileName.length() - 4) 
+								+ "_output.csv";
+					} else {
+						csvOutputFileName = csvInputFileName + "_output.csv";
+					}
+					csvOutputFileField.setText(getFileNameForField(csvOutputFileName));
 				} else {
 					//
 				}
 			}
 		});
 
-		//Extension rule file label, text field and browse button.
-		Label extRulesLabel = new Label("Select extension rules file:");
-		grid.add(extRulesLabel, 0, 3);
-
-		TextField extRulesField = new TextField();
-		extRulesField.setMinSize(300, 20);
-		extRulesField.setEditable(false);
-		grid.add(extRulesField, 0, 4);
-
-		extRulesBtn = new Button("Browse");
-		HBox extRulesBox = new HBox(50);
-		extRulesBox.setAlignment(Pos.BOTTOM_RIGHT);
-		extRulesBox.getChildren().add(extRulesBtn);
-		grid.add(extRulesBox, 1, 4);
-		
-		//Tags file label, text field and browse button.
-		Label tagsLabel = new Label("Select tags list file:");
-		grid.add(tagsLabel, 0, 5);
-
-		TextField tagsField = new TextField();
-		tagsField.setMinSize(300, 20);
-		tagsField.setEditable(false);
-		grid.add(tagsField, 0, 6);
-
-		tagsBtn = new Button("Browse");
-		HBox tagsBox = new HBox(50);
-		tagsBox.setAlignment(Pos.BOTTOM_RIGHT);
-		tagsBox.getChildren().add(tagsBtn);
-		grid.add(tagsBox, 1, 6);
-		
-		//Well names file label, text field and browse button.
-		Label wellsLabel = new Label("Select wells names file:");
-		grid.add(wellsLabel, 0, 7);
-
-		TextField wellsField = new TextField();
-		wellsField.setMinSize(300, 20);
-		wellsField.setEditable(false);
-		grid.add(wellsField, 0, 8);
-
-		wellsBtn = new Button("Browse");
-		HBox wellsBox = new HBox(50);
-		wellsBox.setAlignment(Pos.BOTTOM_RIGHT);
-		wellsBox.getChildren().add(wellsBtn);
-		grid.add(wellsBox, 1, 8);
-		
 		extRulesBtn.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(final ActionEvent e) {
@@ -194,24 +210,24 @@ public class FileCSVScannerWindows extends Application implements CallBack, Even
 		});
 		
 		Label priorityOneLabel = new Label("Enter optional priority #1 column name for tags:");
-		grid.add(priorityOneLabel, 0, 9);
+		grid.add(priorityOneLabel, 0, 11);
 		
 		TextField priorityOneField = new TextField();
 		priorityOneField.setMaxSize(150, 20);
-		grid.add(priorityOneField, 0, 10);
+		grid.add(priorityOneField, 0, 12);
 		
 		Label priorityTwoLabel = new Label("Enter optional priority #2 column name for tags:");
-		grid.add(priorityTwoLabel, 0, 11);
+		grid.add(priorityTwoLabel, 0, 13);
 		
 		TextField priorityTwoField = new TextField();
 		priorityTwoField.setMaxSize(150, 20);
-		grid.add(priorityTwoField, 0, 12);
+		grid.add(priorityTwoField, 0, 14);
 		
 		clearBtn = new Button("Clear all");
 		HBox clearBox = new HBox(50);
 		clearBox.setAlignment(Pos.BASELINE_RIGHT);
 		clearBox.getChildren().add(clearBtn);
-		grid.add(clearBox, 0, 14);
+		grid.add(clearBox, 0, 16);
 		clearBtn.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(final ActionEvent e) {
@@ -232,7 +248,7 @@ public class FileCSVScannerWindows extends Application implements CallBack, Even
 		HBox scannerBox = new HBox(50);
 		scannerBox.setAlignment(Pos.BASELINE_CENTER);
 		scannerBox.getChildren().add(scannerBtn);
-		grid.add(scannerBox, 1, 14);
+		grid.add(scannerBox, 1, 16);
 		scannerBtn.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(final ActionEvent e) {
@@ -247,17 +263,17 @@ public class FileCSVScannerWindows extends Application implements CallBack, Even
 		});
 		
 		statusLabel = new Label("Status: Click run to start.");
-		grid.add(statusLabel, 0, 15);
+		grid.add(statusLabel, 0, 17);
 		
 		pb = new ProgressBar(0);
 		pb.setMinSize(200, 10);
-		grid.add(pb, 0, 16);
+		grid.add(pb, 0, 18);
 		
 		stopBtn = new Button("Stop scanning");
 		HBox stopBox = new HBox(90);
 		stopBox.setAlignment(Pos.BASELINE_CENTER);
 		stopBox.getChildren().add(stopBtn);
-		grid.add(stopBox, 1, 16);
+		grid.add(stopBox, 1, 18);
 		stopBtn.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(final ActionEvent e) {
@@ -275,7 +291,7 @@ public class FileCSVScannerWindows extends Application implements CallBack, Even
 			}
 		});
 
-		Scene scene = new Scene(grid, 500, 550);
+		Scene scene = new Scene(grid, 500, 650);
 		primaryStage.setScene(scene);
 		primaryStage.setResizable(false);
 		primaryStage.show();
@@ -337,7 +353,7 @@ public class FileCSVScannerWindows extends Application implements CallBack, Even
 	private void launchScanner() throws IOException {
 		statusLabel.setText("Status: Starting scanner.");
 		fcs = new FileCSVScanner(csvInputFileName, this, extRulesFileName, 
-				tagsFileName, wellsFileName);
+				tagsFileName, wellsFileName, csvOutputFileName);
 		fcs.start();
 		setDisableButtons(true);
 		pb.setProgress(-1d);//progress start spinning.
